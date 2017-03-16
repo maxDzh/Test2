@@ -1,0 +1,38 @@
+public static XmlElement FREC_REQUEST(string url, string Cookies, string PayLoad, out string response){
+			
+			response="";
+ 			
+ 			QC_Object.Update(ref PayLoad);
+			string XTDID = GetXTDID(PayLoad);
+			
+			FrecRequest = PayLoad;
+			
+			HttpWebRequest req = WebRequest.Create(new Uri(url))  as HttpWebRequest;
+		  	req.Method = "POST";  
+		  	//req.ContentType = "application/xml";
+		  	if(Cookies!=null)
+		  	req.Headers.Add("Cookie",Cookies );
+		  	req.Headers.Add("X-TD-ID",XTDID);
+		  	//req.Proxy = new WebProxy("127.0.0.1",8080);
+		  	req.Proxy =  _Proxy;
+				  	
+		  	byte[] formData = UTF8Encoding.UTF8.GetBytes(PayLoad);
+		  	req.ContentLength = formData.Length;
+		
+		  	
+		  	using (Stream post = req.GetRequestStream())  // Send the request
+		  	{  	post.Write(formData, 0, formData.Length);   	}
+		  	
+		  	
+		  	string result = null;  // Pick up the response
+		  	using (HttpWebResponse resp = req.GetResponse() as HttpWebResponse)  
+		  	{  		  	
+		    	StreamReader reader = new StreamReader(resp.GetResponseStream());
+		    	result = reader.ReadToEnd();
+		  	}			
+		  	response=result;
+		  	XmlDocument doc = new XmlDocument();					
+			XmlElement xresp = doc.CreateElement("QC_RESPONSE");			
+			xresp.InnerXml = "<BODY><![CDATA["+result+"]]></BODY>";	
+			return xresp;
+ 		}
